@@ -264,8 +264,18 @@
             text-transform: uppercase;
         }
 
+        /* Temporary message if no images are found */
+        .no-images-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            background: rgba(20, 20, 20, 0.4);
+            border-radius: 10px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: var(--text-muted);
+        }
+
         /* --- Contact Section --- */
-        /* Glassmorphism Container */
         .contact-container {
             display: flex;
             flex-direction: column;
@@ -408,26 +418,12 @@
         </div>
     </section>
 
-    <!-- Portfolio Section -->
+    <!-- Dynamic Portfolio Section -->
     <section id="portfolio" class="fade-in">
         <h2 class="section-title">Our Work</h2>
-        <div class="portfolio-grid">
-            <div class="portfolio-item">
-                <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80" alt="Wedding Shoot">
-                <div class="portfolio-overlay"><span>Wedding</span></div>
-            </div>
-            <div class="portfolio-item">
-                <img src="https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=800&q=80" alt="Pre-Wedding">
-                <div class="portfolio-overlay"><span>Pre-Wedding</span></div>
-            </div>
-            <div class="portfolio-item">
-                <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&q=80" alt="Fashion">
-                <div class="portfolio-overlay"><span>Fashion</span></div>
-            </div>
-            <div class="portfolio-item">
-                <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80" alt="Cinematography">
-                <div class="portfolio-overlay"><span>Cinematography</span></div>
-            </div>
+        <!-- Javascript will inject images directly into this grid -->
+        <div class="portfolio-grid" id="dynamic-portfolio">
+            <!-- Images will load here automatically -->
         </div>
     </section>
 
@@ -446,7 +442,8 @@
                     <i class="fa-brands fa-whatsapp"></i> Message on WhatsApp
                 </a>
                 
-                <a href="https://instagram.com/YOUR_INSTA_HANDLE" target="_blank" class="social-btn instagram">
+                <!-- Updated Instagram Link -->
+                <a href="https://www.instagram.com/apphoto_and_film?igsh=MW9kNmowbGxteGc1ZQ==" target="_blank" class="social-btn instagram">
                     <i class="fa-brands fa-instagram"></i> Follow on Instagram
                 </a>
 
@@ -474,7 +471,7 @@
             }
         });
 
-        // Fade-in animation on scroll using Intersection Observer
+        // Fade-in animation on scroll
         const observerOptions = {
             root: null,
             rootMargin: '0px',
@@ -493,6 +490,65 @@
         document.querySelectorAll('.fade-in').forEach(section => {
             observer.observe(section);
         });
+
+        // --- Dynamic Image Auto-Loader System ---
+        const portfolioGrid = document.getElementById('dynamic-portfolio');
+        let imageCounter = 1; // Start looking for 1.jpg
+
+        function loadPortfolioImages() {
+            // Define the path to look for images in a folder named "portfolio"
+            const imagePath = `portfolio/${imageCounter}.jpg`; 
+            
+            const img = new Image();
+            
+            // If the image exists and loads successfully
+            img.onload = function() {
+                // Create the portfolio item container
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'portfolio-item';
+                
+                // Add the image tag
+                const imgElement = document.createElement('img');
+                imgElement.src = imagePath;
+                imgElement.alt = `AP Photo Work ${imageCounter}`;
+                
+                // Add the hover overlay
+                const overlayDiv = document.createElement('div');
+                overlayDiv.className = 'portfolio-overlay';
+                overlayDiv.innerHTML = `<span>Work ${imageCounter}</span>`;
+                
+                // Construct the elements inside the grid
+                itemDiv.appendChild(imgElement);
+                itemDiv.appendChild(overlayDiv);
+                portfolioGrid.appendChild(itemDiv);
+                
+                // Increment counter and try to load the NEXT number
+                imageCounter++;
+                loadPortfolioImages(); 
+            };
+            
+            // If the image DOES NOT exist (hits the end of your files)
+            img.onerror = function() {
+                console.log(`Finished checking. Loaded ${imageCounter - 1} images to the portfolio.`);
+                
+                // If it couldn't even find 1.jpg, show an instruction message on the live site
+                if (imageCounter === 1) {
+                    portfolioGrid.innerHTML = `
+                        <div class="no-images-msg">
+                            <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 10px; color: var(--accent);"></i>
+                            <p><strong>Ready for your photos!</strong></p>
+                            <p style="font-size: 0.9rem; margin-top: 5px;">Create a folder named <code>portfolio</code> in your GitHub repository and upload photos named <code>1.jpg</code>, <code>2.jpg</code>, etc. They will automatically appear here.</p>
+                        </div>
+                    `;
+                }
+            };
+            
+            // Trigger the loading attempt
+            img.src = imagePath;
+        }
+
+        // Start the loading sequence when the script runs
+        loadPortfolioImages();
     </script>
 </body>
 </html>
